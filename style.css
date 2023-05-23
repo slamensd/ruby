@@ -1,0 +1,16 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+#app {
+    width: 90%;
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    margin-top: 20px;
+}
