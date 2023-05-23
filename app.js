@@ -1,29 +1,53 @@
-// provider remains the same
-const provider = new ethers.providers.Web3Provider(window.ethereum);
-
-// Diamond contract address
-const contractAddress = "0x232765be70a5f0b49e2d72eee9765813894c1fc4";
-
-// Replace with the correct Diamond Contract ABI
-const contractABI = [{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"components":[{"internalType":"address","name":"diamondCutFacet","type":"address"},{"internalType":"address","name":"diamondLoupeFacet","type":"address"},{"internalType":"address","name":"erc165Facet","type":"address"},{"internalType":"address","name":"erc173Facet","type":"address"}],"internalType":"struct Diamond.CoreFacets","name":"_coreFacets","type":"tuple"},{"components":[{"internalType":"address","name":"facetAddress","type":"address"},{"internalType":"enum IDiamondCut.FacetCutAction","name":"action","type":"uint8"},{"internalType":"bytes4[]","name":"functionSelectors","type":"bytes4[]"}],"internalType":"struct IDiamondCut.FacetCut[]","name":"_facets","type":"tuple[]"},{"components":[{"internalType":"address","name":"initContract","type":"address"},{"internalType":"bytes","name":"initData","type":"bytes"}],"internalType":"struct Diamond.Initialization[]","name":"_initializations","type":"tuple[]"}],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[{"internalType":"address","name":"facet","type":"address"},{"internalType":"bytes4","name":"selector","type":"bytes4"}],"name":"ErrDiamondFacetAlreadyExists","type":"error"},{"stateMutability":"payable","type":"fallback"},{"inputs":[{"internalType":"bytes[]","name":"data","type":"bytes[]"}],"name":"multicall","outputs":[{"internalType":"bytes[]","name":"results","type":"bytes[]"}],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}];  
+// Establish connection to the provider.
+let provider;
 let userAddress;
+let signer;
 
 document.getElementById("connectBtn").addEventListener("click", async () => {
-    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-    userAddress = accounts[0];
-    document.getElementById("walletAddress").innerText = "Wallet Address: " + userAddress;
+    if (window.ethereum) {
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        try {
+            // Request account access
+            await window.ethereum.enable();
+
+            // Account access granted, get signer
+            signer = provider.getSigner();
+
+            // Get the user's address
+            userAddress = await signer.getAddress();
+            document.getElementById("walletAddress").innerText = `Wallet Address: ${userAddress}`;
+        } catch (error) {
+            console.error("User denied account access");
+            document.getElementById("walletAddress").innerText = "Error: User denied account access!";
+        }
+    } else {
+        console.error("No Ethereum provider was found. Please install MetaMask.");
+        document.getElementById("walletAddress").innerText = "Error: No Ethereum provider was found!";
+    }
 });
 
 document.getElementById("verifyBtn").addEventListener("click", async () => {
-    const contract = new ethers.Contract(contractAddress, contractABI, provider);
+    const facetAddress = "0xcd3decb28dbfa49579237928c1a7df2687d88881";
     const tokenId = 6;
 
-    // Call balanceOf function using Diamond Standard contract
-    const balance = await contract.balanceOf(userAddress, tokenId);
+    // Set up a call to the balanceOf function
+    const data = ethers.utils.defaultAbiCoder.encode(
+        ["address", "uint256"],
+        [userAddress, tokenId]
+    );
 
-    if (balance.toNumber() > 0) {
+    const transaction = {
+        to: facetAddress,
+        data: "0x00fdd58e" + data.slice(2), // prepend function selector
+    };
+
+    // Call balanceOf function using Diamond Standard contract
+    const result = await provider.call(transaction);
+    const balance = ethers.BigNumber.from(result);
+
+    if (balance.gt(0)) {
         document.getElementById("verificationMessage").innerText = "Token Verified!";
-        document.getElementById("hiddenMessage").innerText = "We start at zero...";
+        document.getElementById("hiddenMessage").innerText = "We start at zero, book one unfurled, Page one's second letter \"U\", into our world. To page three we turn, the fifth letter to peek, On this journey of ours, the clues we seek. Fast forward to eight, a letter to meet, Put them together, the word is complete. A three-letter puzzle, for your mind's keep, Seek, find, and unravel, in this mystery deep.";
     } else {
         document.getElementById("verificationMessage").innerText = "Error: Token not found in this wallet!";
     }
