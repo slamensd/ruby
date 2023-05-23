@@ -18,6 +18,11 @@ h1 {
     margin-bottom: 50px;
 }
 
+.logo {
+    max-height: 40px;
+    width: auto;
+}
+
 .btn {
     font-size: 18px;
     line-height: 22px;
@@ -62,4 +67,13 @@ h1 {
 #verificationMessage, #hiddenMessage {
     color: #FFFFFF;
     margin-bottom: 20px;
+}
+
+#hiddenMessage {
+    color: transparent;
+    transition: color 0.5s linear;
+}
+
+#hiddenMessage:hover {
+    color: #FFFFFF;
 }
