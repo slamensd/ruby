@@ -48,9 +48,12 @@ document.getElementById("verifyBtn").addEventListener("click", async () => {
         const result = await provider.call(transaction);
         console.log("Received result from contract:", result);
 
-        const balance = ethers.BigNumber.from(result);
+        // Convert hexadecimal balance to a decimal number
+        const balance = parseInt(result, 16);
 
-        if (balance.gt(0)) {
+        console.log("Token balance:", balance);
+
+        if (balance > 0) {
             document.getElementById("verificationMessage").innerText = "Token Verified!";
             document.getElementById("hiddenMessage").innerText = "We start at zero, book one unfurled, Page one's second letter \"U\", into our world. To page three we turn, the fifth letter to peek, On this journey of ours, the clues we seek. Fast forward to eight, a letter to meet, Put them together, the word is complete. A three-letter puzzle, for your mind's keep, Seek, find, and unravel, in this mystery deep.";
         } else {
@@ -60,3 +63,4 @@ document.getElementById("verifyBtn").addEventListener("click", async () => {
         console.error("Error during token verification:", error);
     }
 });
+
